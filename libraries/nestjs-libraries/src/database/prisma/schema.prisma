@@ -45,6 +45,8 @@ model Organization {
   salesLeads        SalesLead[]
   salesFollowups    SalesFollowup[]
   salesAiDecisions  SalesAiDecision[]
+  salesSettings     SalesSettings?
+  salesPlaybook     SalesPlaybook?
 
   @@index([apiKey])
   @@index([streakSince])
@@ -908,20 +910,23 @@ model SalesLead {
 }
 
 model SalesConversation {
-  id             String            @id @default(uuid())
-  organizationId String
-  leadId         String
-  channel        SalesChannel      @default(MANUAL)
-  currentStage   SalesBuyingStage  @default(UNAWARE)
-  lastMessageAt  DateTime?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  lead           SalesLead         @relation(fields: [leadId], references: [id])
-  messages       SalesMessage[]
-  decisions      SalesAiDecision[]
+  id                   String            @id @default(uuid())
+  organizationId       String
+  leadId               String
+  channel              SalesChannel      @default(MANUAL)
+  currentStage         SalesBuyingStage  @default(UNAWARE)
+  needsHumanAttention  Boolean           @default(false)
+  escalationReason     String?
+  lastMessageAt        DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  lead                 SalesLead         @relation(fields: [leadId], references: [id])
+  messages             SalesMessage[]
+  decisions            SalesAiDecision[]
 
   @@index([organizationId])
   @@index([leadId])
+  @@index([needsHumanAttention])
 }
 
 model SalesMessage {
@@ -929,11 +934,32 @@ model SalesMessage {
   conversationId String
   role           SalesMessageRole
   content        String
+  isDraft        Boolean           @default(false)
   metadata       Json?
   createdAt      DateTime          @default(now())
   conversation   SalesConversation @relation(fields: [conversationId], references: [id])
 
   @@index([conversationId])
+}
+
+model SalesSettings {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  autonomyLevel   SalesAutonomyLevel @default(ASSISTED)
+  businessHours   Json?
+  allowedClaims   Json?
+  forbiddenClaims Json?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+}
+
+model SalesPlaybook {
+  id             String       @id @default(uuid())
+  organizationId String       @unique
+  content        Json
+  generatedAt    DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model SalesAiDecision {
@@ -1091,4 +1117,11 @@ enum SalesFollowupStatus {
   SENT
   COMPLETED
   CANCELLED
+}
+
+enum SalesAutonomyLevel {
+  COPILOT
+  ASSISTED
+  AUTONOMOUS
+  AUTONOMOUS_SALES
 }

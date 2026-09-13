@@ -7,6 +7,9 @@ import {
   SalesBrainDecision,
   SalesBrainDecisionRequest,
   SalesBrainDecisionSchema,
+  SalesBrainProductContext,
+  SalesPlaybook,
+  SalesPlaybookSchema,
 } from '@gitroom/nestjs-libraries/sales-brain/sales-brain.types';
 
 const openai = new OpenAI({
@@ -323,5 +326,72 @@ ${JSON.stringify(request.products, null, 2)}`;
     }
 
     return parsed;
+  }
+
+  async generateSalesPlaybook(
+    organizationName: string,
+    products: SalesBrainProductContext[]
+  ): Promise<SalesPlaybook> {
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are THE 20-YEAR SALES MASTER building a complete Sales Playbook for "${organizationName}". Use ONLY the product/offer data supplied - never invent features, prices, guarantees or testimonials that are not present. If a section cannot be filled from the given data, make it a short, honest, general best-practice guideline instead of fabricating specifics.`,
+        },
+        {
+          role: 'user',
+          content: `Products/offers:\n${JSON.stringify(products, null, 2)}`,
+        },
+      ],
+      response_format: zodResponseFormat(SalesPlaybookSchema, 'sales_playbook'),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Sales playbook generation returned no structured output');
+    }
+    return parsed;
+  }
+
+  async generateFollowUpMessage(
+    organizationName: string,
+    leadContext: Record<string, unknown>,
+    reason: string
+  ): Promise<string> {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are THE 20-YEAR SALES MASTER writing one follow-up message on behalf of "${organizationName}". Never write a generic "just checking in" message. Give the prospect a genuine reason to continue the conversation, grounded in what they already said. Keep it short (2-4 sentences), never invent facts not in the context. Return only the message text, no preamble.`,
+        },
+        {
+          role: 'user',
+          content: `Lead context: ${JSON.stringify(leadContext)}\nWhy this follow-up is due: ${reason}`,
+        },
+      ],
+    });
+
+    return completion.choices[0].message.content || '';
+  }
+
+  async answerSalesBrainQuestion(
+    organizationName: string,
+    businessDataSummary: string,
+    question: string
+  ): Promise<string> {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are THE 20-YEAR SALES MASTER acting as an AI Sales Command Center for "${organizationName}". Answer the owner's question using ONLY the business data summary provided below. Never invent numbers, leads, or facts not present in it. If the data does not contain what is needed to answer, say so plainly and suggest what to track instead.\n\nBusiness data summary:\n${businessDataSummary}`,
+        },
+        { role: 'user', content: question },
+      ],
+    });
+
+    return completion.choices[0].message.content || '';
   }
 }

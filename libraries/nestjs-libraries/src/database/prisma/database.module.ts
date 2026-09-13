@@ -42,6 +42,12 @@ import { SalesLeadsRepository } from '@gitroom/nestjs-libraries/database/prisma/
 import { SalesLeadsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/leads.service';
 import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
 import { SalesConversationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.service';
+import { SalesSettingsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.repository';
+import { SalesSettingsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.service';
+import { SalesFollowupsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.repository';
+import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.service';
+import { SalesPlaybookRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/playbook.repository';
+import { SalesPlaybookService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/playbook.service';
 import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/sales-brain-engine.service';
 
 @Global()
@@ -94,6 +100,12 @@ import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/s
     SalesLeadsService,
     SalesConversationsRepository,
     SalesConversationsService,
+    SalesSettingsRepository,
+    SalesSettingsService,
+    SalesFollowupsRepository,
+    SalesFollowupsService,
+    SalesPlaybookRepository,
+    SalesPlaybookService,
     SalesBrainEngineService,
   ],
   get exports() {

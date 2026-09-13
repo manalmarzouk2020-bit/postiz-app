@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthController } from '@gitroom/backend/api/routes/auth.controller';
 import { AuthService } from '@gitroom/backend/services/auth/auth.service';
 import { UsersController } from '@gitroom/backend/api/routes/users.controller';
@@ -35,6 +36,13 @@ import { NoAuthIntegrationsController } from '@gitroom/backend/api/routes/no.aut
 import { EnterpriseController } from '@gitroom/backend/api/routes/enterprise.controller';
 import { SalesBrainProductsController } from '@gitroom/backend/api/routes/sales-brain/products.controller';
 import { SalesBrainLeadsController } from '@gitroom/backend/api/routes/sales-brain/leads.controller';
+import { SalesBrainSettingsController } from '@gitroom/backend/api/routes/sales-brain/settings.controller';
+import { SalesBrainConversationsController } from '@gitroom/backend/api/routes/sales-brain/conversations.controller';
+import { SalesBrainInboundController } from '@gitroom/backend/api/routes/sales-brain/inbound.controller';
+import { SalesBrainPlaybookController } from '@gitroom/backend/api/routes/sales-brain/playbook.controller';
+import { SalesBrainAskController } from '@gitroom/backend/api/routes/sales-brain/ask.controller';
+import { SalesBrainFollowupsController } from '@gitroom/backend/api/routes/sales-brain/followups.controller';
+import { SalesFollowupsCronService } from '@gitroom/nestjs-libraries/sales-brain/sales-followups-cron.service';
 
 const authenticatedController = [
   UsersController,
@@ -53,9 +61,14 @@ const authenticatedController = [
   ThirdPartyController,
   SalesBrainProductsController,
   SalesBrainLeadsController,
+  SalesBrainSettingsController,
+  SalesBrainConversationsController,
+  SalesBrainPlaybookController,
+  SalesBrainAskController,
+  SalesBrainFollowupsController,
 ];
 @Module({
-  imports: [UploadModule],
+  imports: [UploadModule, ScheduleModule.forRoot()],
   controllers: [
     RootController,
     StripeController,
@@ -64,6 +77,7 @@ const authenticatedController = [
     MonitorController,
     EnterpriseController,
     NoAuthIntegrationsController,
+    SalesBrainInboundController,
     ...authenticatedController,
   ],
   providers: [
@@ -79,6 +93,7 @@ const authenticatedController = [
     TrackService,
     ShortLinkService,
     Nowpayments,
+    SalesFollowupsCronService,
   ],
   get exports() {
     return [...this.imports, ...this.providers];

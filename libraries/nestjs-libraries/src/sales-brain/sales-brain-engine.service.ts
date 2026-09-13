@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { SalesLeadsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/leads.repository';
 import { SalesProductsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/products.repository';
 import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
+import { SalesSettingsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.service';
+import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import {
   calculateLeadScore,
@@ -20,6 +22,8 @@ export class SalesBrainEngineService {
     private _leadsRepository: SalesLeadsRepository,
     private _productsRepository: SalesProductsRepository,
     private _conversationsRepository: SalesConversationsRepository,
+    private _settingsService: SalesSettingsService,
+    private _followupsService: SalesFollowupsService,
     private _openaiService: OpenaiService
   ) {}
 
@@ -92,6 +96,10 @@ export class SalesBrainEngineService {
       (a, b) => b.fitScore - a.fitScore
     )[0];
 
+    const settings = await this._settingsService.getSettings(organizationId);
+    const requiresApproval =
+      settings.autonomyLevel === 'COPILOT' || settings.autonomyLevel === 'ASSISTED';
+
     await this._conversationsRepository.addMessage(
       conversation.id,
       'AI',
@@ -102,7 +110,8 @@ export class SalesBrainEngineService {
         conversationalObjective: decision.conversationalObjective,
         shouldEscalateToHuman: decision.shouldEscalateToHuman,
         escalationReason: decision.escalationReason,
-      }
+      },
+      requiresApproval
     );
 
     await this._conversationsRepository.updateConversationStage(
@@ -110,6 +119,27 @@ export class SalesBrainEngineService {
       conversation.id,
       decision.buyingStage
     );
+
+    if (decision.shouldEscalateToHuman) {
+      await this._conversationsRepository.setHandoff(
+        organizationId,
+        conversation.id,
+        true,
+        decision.escalationReason
+      );
+    }
+
+    if (
+      decision.conversationalObjective === 'follow_up' ||
+      decision.buyingStage === 'POSTPONING'
+    ) {
+      await this._followupsService.scheduleIfNeeded(
+        organizationId,
+        leadId,
+        decision.urgency,
+        decision.recommendedAction
+      );
+    }
 
     await this._leadsRepository.updateAfterDecision(organizationId, leadId, {
       buyingStage: decision.buyingStage,
@@ -147,6 +177,7 @@ export class SalesBrainEngineService {
       leadScore,
       pipelineStage,
       aiDecisionId: savedDecision.id,
+      requiresApproval,
     };
   }
 }

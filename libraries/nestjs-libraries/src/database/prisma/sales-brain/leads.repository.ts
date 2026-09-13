@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { CreateLeadDto } from '@gitroom/nestjs-libraries/dtos/sales-brain/lead.dto';
-import { Prisma, SalesBuyingStage, SalesPipelineStage } from '@prisma/client';
+import { Prisma, SalesBuyingStage, SalesChannel, SalesPipelineStage } from '@prisma/client';
 
 @Injectable()
 export class SalesLeadsRepository {
@@ -68,6 +68,36 @@ export class SalesLeadsRepository {
     });
   }
 
+  async findOrCreateByContact(
+    organizationId: string,
+    contact: { name?: string; email?: string; phone?: string },
+    source: SalesChannel
+  ) {
+    const orConditions = [
+      ...(contact.phone ? [{ phone: contact.phone }] : []),
+      ...(contact.email ? [{ email: contact.email }] : []),
+    ];
+
+    if (orConditions.length) {
+      const existing = await this._lead.model.salesLead.findFirst({
+        where: { organizationId, deletedAt: null, OR: orConditions },
+      });
+      if (existing) {
+        return existing;
+      }
+    }
+
+    return this._lead.model.salesLead.create({
+      data: {
+        organizationId,
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+        source,
+      },
+    });
+  }
+
   getDashboardStats(organizationId: string) {
     return this._lead.model.salesLead.findMany({
       where: { organizationId, deletedAt: null },
@@ -79,6 +109,22 @@ export class SalesLeadsRepository {
         buyingStage: true,
         updatedAt: true,
       },
+    });
+  }
+
+  getAllForSummary(organizationId: string) {
+    return this._lead.model.salesLead.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        leadScore: true,
+        pipelineStage: true,
+        buyingStage: true,
+        urgency: true,
+        budgetSignal: true,
+        objections: true,
+        painPoints: true,
+      },
+      take: 500,
     });
   }
 }

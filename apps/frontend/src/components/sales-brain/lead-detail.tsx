@@ -40,6 +40,22 @@ export const SalesBrainLeadDetail: FC = () => {
     }
   }, [message, id, mutate]);
 
+  const approveDraft = useCallback(
+    (messageId: string) => async () => {
+      await fetch(`/sales-brain/messages/${messageId}/approve`, { method: 'POST' });
+      mutate();
+    },
+    [mutate]
+  );
+
+  const rejectDraft = useCallback(
+    (messageId: string) => async () => {
+      await fetch(`/sales-brain/messages/${messageId}`, { method: 'DELETE' });
+      mutate();
+    },
+    [mutate]
+  );
+
   if (isLoading || !lead) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -127,14 +143,32 @@ export const SalesBrainLeadDetail: FC = () => {
             <div
               key={m.id}
               className={clsx(
-                'max-w-[75%] rounded-[8px] p-[10px] text-[14px]',
+                'max-w-[75%] rounded-[8px] p-[10px] text-[14px] flex flex-col gap-[6px]',
                 m.role === 'LEAD' && 'self-start bg-forth',
                 m.role === 'AI' && 'self-end bg-primary/20',
-                m.role === 'HUMAN' && 'self-end bg-forth border border-fifth'
+                m.role === 'HUMAN' && 'self-end bg-forth border border-fifth',
+                m.isDraft && 'border border-dashed border-yellow-400'
               )}
             >
-              <div className="text-[10px] opacity-60 mb-[2px]">{m.role}</div>
+              <div className="text-[10px] opacity-60">
+                {m.role}
+                {m.isDraft && (
+                  <span className="ms-[6px] text-yellow-400">
+                    {t('draft_awaiting_approval', 'draft · awaiting approval')}
+                  </span>
+                )}
+              </div>
               {m.content}
+              {m.isDraft && (
+                <div className="flex gap-[8px]">
+                  <Button onClick={approveDraft(m.id)}>
+                    {t('approve_and_send', 'Approve & send')}
+                  </Button>
+                  <Button secondary={true} onClick={rejectDraft(m.id)}>
+                    {t('discard', 'Discard')}
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

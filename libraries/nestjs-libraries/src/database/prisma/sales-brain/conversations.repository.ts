@@ -40,10 +40,11 @@ export class SalesConversationsRepository {
     conversationId: string,
     role: SalesMessageRole,
     content: string,
-    metadata?: Prisma.InputJsonValue
+    metadata?: Prisma.InputJsonValue,
+    isDraft = false
   ) {
     return this._message.model.salesMessage.create({
-      data: { conversationId, role, content, metadata },
+      data: { conversationId, role, content, metadata, isDraft },
     });
   }
 
@@ -56,6 +57,50 @@ export class SalesConversationsRepository {
       where: { id, organizationId },
       data: { currentStage, lastMessageAt: new Date() },
     });
+  }
+
+  setHandoff(
+    organizationId: string,
+    id: string,
+    needsHumanAttention: boolean,
+    escalationReason?: string | null
+  ) {
+    return this._conversation.model.salesConversation.update({
+      where: { id, organizationId },
+      data: { needsHumanAttention, escalationReason },
+    });
+  }
+
+  getHandoffs(organizationId: string) {
+    return this._conversation.model.salesConversation.findMany({
+      where: { organizationId, needsHumanAttention: true },
+      include: {
+        lead: true,
+        messages: { orderBy: { createdAt: 'desc' }, take: 5 },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  getDraftMessage(organizationId: string, messageId: string) {
+    return this._message.model.salesMessage.findFirst({
+      where: {
+        id: messageId,
+        isDraft: true,
+        conversation: { organizationId },
+      },
+    });
+  }
+
+  setMessageDraftState(messageId: string, isDraft: boolean) {
+    return this._message.model.salesMessage.update({
+      where: { id: messageId },
+      data: { isDraft },
+    });
+  }
+
+  deleteMessage(messageId: string) {
+    return this._message.model.salesMessage.delete({ where: { id: messageId } });
   }
 
   saveDecision(data: {

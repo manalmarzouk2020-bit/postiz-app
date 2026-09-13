@@ -113,6 +113,31 @@ export interface SalesBrainConversationMessage {
   content: string;
 }
 
+// The 15-section Sales Playbook auto-generated from an org's product catalog
+// (master spec section 26). Kept to plain strings/arrays so it renders directly.
+export const SalesPlaybookSchema = z.object({
+  idealCustomers: z.array(z.string()),
+  buyerPersonas: z.array(
+    z.object({ name: z.string(), description: z.string() })
+  ),
+  painPoints: z.array(z.string()),
+  buyingTriggers: z.array(z.string()),
+  discoveryQuestions: z.array(z.string()),
+  valuePropositions: z.array(z.string()),
+  productPositioning: z.string(),
+  objectionLibrary: z.array(
+    z.object({ objection: z.string(), response: z.string() })
+  ),
+  competitorDifferentiation: z.array(z.string()),
+  closingStrategies: z.array(z.string()),
+  followUpSequences: z.array(z.string()),
+  qualificationRules: z.array(z.string()),
+  escalationRules: z.array(z.string()),
+  upsellStrategy: z.array(z.string()),
+});
+
+export type SalesPlaybook = z.infer<typeof SalesPlaybookSchema>;
+
 export interface SalesBrainDecisionRequest {
   organizationName: string;
   lead: {
