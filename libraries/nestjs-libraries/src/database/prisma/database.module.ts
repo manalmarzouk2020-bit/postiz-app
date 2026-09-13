@@ -36,6 +36,13 @@ import { ThirdPartyService } from '@gitroom/nestjs-libraries/database/prisma/thi
 import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { FalService } from '@gitroom/nestjs-libraries/openai/fal.service';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
+import { SalesProductsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/products.repository';
+import { SalesProductsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/products.service';
+import { SalesLeadsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/leads.repository';
+import { SalesLeadsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/leads.service';
+import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
+import { SalesConversationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.service';
+import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/sales-brain-engine.service';
 
 @Global()
 @Module({
@@ -81,6 +88,13 @@ import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integration
     ThirdPartyRepository,
     ThirdPartyService,
     VideoManager,
+    SalesProductsRepository,
+    SalesProductsService,
+    SalesLeadsRepository,
+    SalesLeadsService,
+    SalesConversationsRepository,
+    SalesConversationsService,
+    SalesBrainEngineService,
   ],
   get exports() {
     return this.providers;

@@ -3,6 +3,11 @@ import OpenAI from 'openai';
 import { shuffle } from 'lodash';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+import {
+  SalesBrainDecision,
+  SalesBrainDecisionRequest,
+  SalesBrainDecisionSchema,
+} from '@gitroom/nestjs-libraries/sales-brain/sales-brain.types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
@@ -267,5 +272,56 @@ export class OpenaiService {
     }
 
     return [];
+  }
+
+  async generateSalesBrainDecision(
+    request: SalesBrainDecisionRequest
+  ): Promise<SalesBrainDecision> {
+    const systemPrompt = `You are THE 20-YEAR SALES MASTER: an internal AI persona representing the accumulated judgement of an elite salesperson with 20+ years and thousands of sales conversations across B2B and B2C, low-ticket and high-ticket.
+
+Your job for every incoming message is to run a decision loop, not to blindly pitch:
+understand the message -> identify intent, buying stage and emotional state -> surface genuine (never invented) pain -> detect real vs surface objections -> score product fit against ONLY the products supplied -> estimate buying probability -> pick the single best conversational objective -> write the reply.
+
+Hard rules (never break these):
+- Never invent product features, prices, discounts, guarantees, testimonials, statistics or case studies. Use only what is given in the product context below.
+- If information needed to answer is missing, say so plainly in the response rather than guessing.
+- Never fabricate urgency or scarcity, never pressure, never misrepresent competitors.
+- Distinguish surface objections ("I don't have budget") from what may really be behind them (no perceived value, no trust, wrong timing) but do not assert a hidden cause you cannot support from the conversation.
+- If none of the supplied products genuinely fit the prospect's situation, say so honestly instead of forcing a pitch.
+- Ask for the next step only when the conversation has earned it; do not close prematurely.
+- Escalate to a human (shouldEscalateToHuman=true) for: high-value negotiation, an angry or distressed customer, legal/refund disputes, or anything outside the supplied product knowledge.
+
+Business: ${request.organizationName}
+
+Known lead context:
+${JSON.stringify(request.lead, null, 2)}
+
+Available products/offers (the ONLY products you may reference or recommend):
+${JSON.stringify(request.products, null, 2)}`;
+
+    const historyMessages = request.history.map((m) => ({
+      role: (m.role === 'LEAD' ? 'user' : 'assistant') as 'user' | 'assistant',
+      content: m.content,
+    }));
+
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...historyMessages,
+        { role: 'user', content: request.incomingMessage },
+      ],
+      response_format: zodResponseFormat(
+        SalesBrainDecisionSchema,
+        'sales_brain_decision'
+      ),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Sales Brain decision engine returned no structured output');
+    }
+
+    return parsed;
   }
 }

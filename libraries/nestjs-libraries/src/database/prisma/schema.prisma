@@ -41,6 +41,10 @@ model Organization {
   usedCodes         UsedCodes[]
   users             UserOrganization[]
   webhooks          Webhooks[]
+  salesProducts     SalesProduct[]
+  salesLeads        SalesLead[]
+  salesFollowups    SalesFollowup[]
+  salesAiDecisions  SalesAiDecision[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -836,6 +840,144 @@ model mastra_workflow_snapshot {
   @@unique([workflow_name, run_id], map: "public_mastra_workflow_snapshot_workflow_name_run_id_key")
 }
 
+model SalesProduct {
+  id                String            @id @default(uuid())
+  organizationId    String
+  name              String
+  description       String?
+  category          String?
+  price             Float?
+  pricingModel      String?
+  features          Json?
+  benefits          Json?
+  primaryOutcome    String?
+  secondaryOutcomes Json?
+  targetMarket      String?
+  guarantees        String?
+  refundPolicy      String?
+  competitors       Json?
+  testimonials      Json?
+  faqs              Json?
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+  organization      Organization      @relation(fields: [organizationId], references: [id])
+  leads             SalesLead[]
+  decisions         SalesAiDecision[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+model SalesLead {
+  id                String              @id @default(uuid())
+  organizationId    String
+  name              String?
+  email             String?
+  phone             String?
+  source            SalesChannel        @default(MANUAL)
+  productInterestId String?
+  persona           Json?
+  painPoints        Json?
+  goals             Json?
+  intent            String?
+  awarenessLevel    String?
+  buyingStage       SalesBuyingStage    @default(UNAWARE)
+  pipelineStage     SalesPipelineStage  @default(NEW)
+  budgetSignal      String?
+  authorityLevel    String?
+  urgency           String?
+  leadScore         Int                 @default(0)
+  painScore         Int                 @default(0)
+  objections        Json?
+  engagementHistory Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+  organization      Organization        @relation(fields: [organizationId], references: [id])
+  productInterest   SalesProduct?       @relation(fields: [productInterestId], references: [id])
+  conversations     SalesConversation[]
+  followups         SalesFollowup[]
+  decisions         SalesAiDecision[]
+
+  @@index([organizationId])
+  @@index([pipelineStage])
+  @@index([leadScore])
+  @@index([deletedAt])
+}
+
+model SalesConversation {
+  id             String            @id @default(uuid())
+  organizationId String
+  leadId         String
+  channel        SalesChannel      @default(MANUAL)
+  currentStage   SalesBuyingStage  @default(UNAWARE)
+  lastMessageAt  DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  lead           SalesLead         @relation(fields: [leadId], references: [id])
+  messages       SalesMessage[]
+  decisions      SalesAiDecision[]
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model SalesMessage {
+  id             String            @id @default(uuid())
+  conversationId String
+  role           SalesMessageRole
+  content        String
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  conversation   SalesConversation @relation(fields: [conversationId], references: [id])
+
+  @@index([conversationId])
+}
+
+model SalesAiDecision {
+  id                String             @id @default(uuid())
+  organizationId    String
+  leadId            String
+  conversationId    String?
+  productId         String?
+  intent            String?
+  buyingStage       SalesBuyingStage?
+  painPoints        Json?
+  objections        Json?
+  recommendedAction String?
+  responseDraft     String?
+  confidence        Json?
+  trace             Json?
+  createdAt         DateTime           @default(now())
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  lead              SalesLead          @relation(fields: [leadId], references: [id])
+  conversation      SalesConversation? @relation(fields: [conversationId], references: [id])
+  product           SalesProduct?      @relation(fields: [productId], references: [id])
+
+  @@index([organizationId])
+  @@index([leadId])
+  @@index([conversationId])
+}
+
+model SalesFollowup {
+  id             String              @id @default(uuid())
+  organizationId String
+  leadId         String
+  scheduledAt    DateTime
+  reason         String?
+  status         SalesFollowupStatus @default(PENDING)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organization   Organization        @relation(fields: [organizationId], references: [id])
+  lead           SalesLead           @relation(fields: [leadId], references: [id])
+
+  @@index([organizationId])
+  @@index([leadId])
+  @@index([status])
+}
+
 enum OrderStatus {
   PENDING
   ACCEPTED
@@ -892,4 +1034,61 @@ enum ShortLinkPreference {
   ASK
   YES
   NO
+}
+
+enum SalesChannel {
+  WEBSITE
+  LANDING_PAGE
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK_MESSENGER
+  EMAIL
+  SMS
+  LIVE_CHAT
+  CRM_IMPORT
+  CSV_UPLOAD
+  API
+  WEBHOOK
+  ECOMMERCE
+  ADVERTISING
+  MANUAL
+}
+
+enum SalesBuyingStage {
+  UNAWARE
+  PROBLEM_AWARE
+  SOLUTION_AWARE
+  PRODUCT_AWARE
+  COMPARING
+  CONSIDERING
+  READY_TO_BUY
+  NEGOTIATING
+  POSTPONING
+  LOST
+  CUSTOMER
+  REPEAT_BUYER
+}
+
+enum SalesPipelineStage {
+  NEW
+  QUALIFIED
+  OPPORTUNITY
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+  NURTURE
+}
+
+enum SalesMessageRole {
+  LEAD
+  AI
+  HUMAN
+}
+
+enum SalesFollowupStatus {
+  PENDING
+  SENT
+  COMPLETED
+  CANCELLED
 }

@@ -143,6 +143,34 @@ export const useMenuItem = () => {
       ),
       path: '/third-party',
     },
+    {
+      name: t('sales_brain', 'Sales Brain'),
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="21"
+          viewBox="0 0 20 21"
+          fill="none"
+        >
+          <path
+            d="M7.5 3.5C5.567 3.5 4 5.067 4 7c0 .746.234 1.437.632 2.005C3.66 9.49 3 10.49 3 11.667 3 13.06 3.899 14.238 5.148 14.664 5.05 14.984 5 15.32 5 15.667 5 17.508 6.492 19 8.333 19h.334c.923 0 1.667-.746 1.667-1.667V5.167C10.333 4.246 9.588 3.5 8.667 3.5H7.5Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12.5 3.5c1.933 0 3.5 1.567 3.5 3.5 0 .746-.234 1.437-.632 2.005.972.485 1.632 1.485 1.632 2.662 0 1.393-.899 2.571-2.148 2.997.098.32.148.657.148 1.003 0 1.841-1.492 3.333-3.333 3.333h-.334A1.667 1.667 0 0 1 9.667 17.333V5.167C9.667 4.246 10.412 3.5 11.333 3.5H12.5Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      path: '/sales-brain',
+    },
   ] satisfies MenuItemInterface[] as MenuItemInterface[];
 
   const secondMenu = [
