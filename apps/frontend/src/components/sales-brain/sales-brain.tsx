@@ -10,6 +10,7 @@ import { SalesBrainHandoffs } from '@gitroom/frontend/components/sales-brain/han
 import { SalesBrainPlaybook } from '@gitroom/frontend/components/sales-brain/playbook';
 import { SalesBrainAsk } from '@gitroom/frontend/components/sales-brain/ask-brain';
 import { SalesBrainSettings } from '@gitroom/frontend/components/sales-brain/settings';
+import { SalesBrainAutomations } from '@gitroom/frontend/components/sales-brain/automations';
 import { useSalesBrainHandoffs } from '@gitroom/frontend/components/sales-brain/sales-brain.hooks';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -20,6 +21,7 @@ type Tab =
   | 'followups'
   | 'handoffs'
   | 'playbook'
+  | 'automations'
   | 'ask'
   | 'settings';
 
@@ -39,6 +41,7 @@ export const SalesBrain: FC = () => {
     },
     { key: 'products', label: t('products_offers', 'Products & Offers') },
     { key: 'playbook', label: t('playbook', 'Playbook') },
+    { key: 'automations', label: t('automations', 'Automations') },
     { key: 'ask', label: t('ask_brain', 'Ask Brain') },
     { key: 'settings', label: t('settings', 'Settings') },
   ];
@@ -72,6 +75,7 @@ export const SalesBrain: FC = () => {
       {tab === 'handoffs' && <SalesBrainHandoffs />}
       {tab === 'products' && <SalesBrainProducts />}
       {tab === 'playbook' && <SalesBrainPlaybook />}
+      {tab === 'automations' && <SalesBrainAutomations />}
       {tab === 'ask' && <SalesBrainAsk />}
       {tab === 'settings' && <SalesBrainSettings />}
     </div>

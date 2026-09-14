@@ -4,6 +4,7 @@ import { SalesProductsRepository } from '@gitroom/nestjs-libraries/database/pris
 import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
 import { SalesSettingsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.service';
 import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.service';
+import { SalesAutomationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/automations.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import {
   calculateLeadScore,
@@ -24,6 +25,7 @@ export class SalesBrainEngineService {
     private _conversationsRepository: SalesConversationsRepository,
     private _settingsService: SalesSettingsService,
     private _followupsService: SalesFollowupsService,
+    private _automationsService: SalesAutomationsService,
     private _openaiService: OpenaiService
   ) {}
 
@@ -154,6 +156,14 @@ export class SalesBrainEngineService {
       ...(bestFitProduct && bestFitProduct.fitScore >= 50
         ? { productInterestId: bestFitProduct.productId }
         : {}),
+    });
+
+    await this._automationsService.evaluateAndFire(organizationId, leadId, {
+      leadScore,
+      buyingStage: decision.buyingStage,
+      pipelineStage,
+      objections: decision.objections,
+      shouldEscalateToHuman: decision.shouldEscalateToHuman,
     });
 
     const savedDecision = await this._conversationsRepository.saveDecision({

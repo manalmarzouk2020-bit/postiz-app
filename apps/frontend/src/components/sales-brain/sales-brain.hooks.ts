@@ -65,3 +65,11 @@ export const useSalesBrainPlaybook = () => {
   }, []);
   return useSWR('sales-brain-playbook', load);
 };
+
+export const useSalesBrainAutomations = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/automations')).json();
+  }, []);
+  return useSWR('sales-brain-automations', load);
+};

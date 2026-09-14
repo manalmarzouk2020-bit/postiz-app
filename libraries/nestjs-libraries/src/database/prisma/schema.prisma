@@ -45,8 +45,9 @@ model Organization {
   salesLeads        SalesLead[]
   salesFollowups    SalesFollowup[]
   salesAiDecisions  SalesAiDecision[]
-  salesSettings     SalesSettings?
-  salesPlaybook     SalesPlaybook?
+  salesSettings        SalesSettings?
+  salesPlaybook        SalesPlaybook?
+  salesAutomationRules SalesAutomationRule[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -962,6 +963,36 @@ model SalesPlaybook {
   organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
+model SalesAutomationRule {
+  id             String                  @id @default(uuid())
+  organizationId String
+  name           String
+  isActive       Boolean                 @default(true)
+  triggerType    SalesAutomationTrigger
+  triggerValue   Json
+  actionType     SalesAutomationAction
+  actionValue    Json
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  organization   Organization            @relation(fields: [organizationId], references: [id])
+  logs           SalesAutomationLog[]
+
+  @@index([organizationId])
+}
+
+model SalesAutomationLog {
+  id             String              @id @default(uuid())
+  organizationId String
+  ruleId         String
+  leadId         String?
+  firedAt        DateTime            @default(now())
+  result         Json?
+  rule           SalesAutomationRule @relation(fields: [ruleId], references: [id])
+
+  @@index([organizationId])
+  @@index([ruleId])
+}
+
 model SalesAiDecision {
   id                String             @id @default(uuid())
   organizationId    String
@@ -1124,4 +1155,17 @@ enum SalesAutonomyLevel {
   ASSISTED
   AUTONOMOUS
   AUTONOMOUS_SALES
+}
+
+enum SalesAutomationTrigger {
+  LEAD_SCORE_ABOVE
+  BUYING_STAGE_EQUALS
+  PIPELINE_STAGE_EQUALS
+  OBJECTION_DETECTED
+  HANDOFF_NEEDED
+}
+
+enum SalesAutomationAction {
+  SEND_NOTIFICATION
+  CALL_WEBHOOK
 }
