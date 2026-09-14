@@ -50,6 +50,14 @@ import { SalesPlaybookRepository } from '@gitroom/nestjs-libraries/database/pris
 import { SalesPlaybookService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/playbook.service';
 import { SalesAutomationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/automations.repository';
 import { SalesAutomationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/automations.service';
+import { SalespersonsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/salespersons.repository';
+import { SalespersonsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/salespersons.service';
+import { RoleplayRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/roleplay.repository';
+import { RoleplayService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/roleplay.service';
+import { SalesExperimentsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/experiments.repository';
+import { SalesExperimentsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/experiments.service';
+import { SalesInsightsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/insights.repository';
+import { SalesInsightsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/insights.service';
 import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/sales-brain-engine.service';
 
 @Global()
@@ -110,6 +118,14 @@ import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/s
     SalesPlaybookService,
     SalesAutomationsRepository,
     SalesAutomationsService,
+    SalespersonsRepository,
+    SalespersonsService,
+    RoleplayRepository,
+    RoleplayService,
+    SalesExperimentsRepository,
+    SalesExperimentsService,
+    SalesInsightsRepository,
+    SalesInsightsService,
     SalesBrainEngineService,
   ],
   get exports() {

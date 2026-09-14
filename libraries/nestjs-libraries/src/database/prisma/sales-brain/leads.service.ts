@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SalesLeadsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/leads.repository';
 import { CreateLeadDto } from '@gitroom/nestjs-libraries/dtos/sales-brain/lead.dto';
 import { leadScoreBand } from '@gitroom/nestjs-libraries/sales-brain/lead-scoring';
+import { calculateForecast } from '@gitroom/nestjs-libraries/sales-brain/forecasting';
 import { SalesChannel } from '@prisma/client';
 
 @Injectable()
@@ -55,6 +56,17 @@ export class SalesLeadsService {
       byScoreBand,
       hotLeads,
     };
+  }
+
+  async getForecast(organizationId: string) {
+    const leads = await this._leadsRepository.getForecastData(organizationId);
+    return calculateForecast(
+      leads.map((lead) => ({
+        pipelineStage: lead.pipelineStage,
+        leadScore: lead.leadScore,
+        price: lead.productInterest?.price ?? null,
+      }))
+    );
   }
 
   async getBusinessDataSummary(organizationId: string): Promise<string> {

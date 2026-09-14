@@ -7,7 +7,8 @@ export class SalesConversationsRepository {
   constructor(
     private _conversation: PrismaRepository<'salesConversation'>,
     private _message: PrismaRepository<'salesMessage'>,
-    private _decision: PrismaRepository<'salesAiDecision'>
+    private _decision: PrismaRepository<'salesAiDecision'>,
+    private _analysis: PrismaRepository<'salesConversationAnalysis'>
   ) {}
 
   async getOrCreateConversation(
@@ -32,7 +33,32 @@ export class SalesConversationsRepository {
   getConversation(organizationId: string, id: string) {
     return this._conversation.model.salesConversation.findFirst({
       where: { organizationId, id },
-      include: { messages: { orderBy: { createdAt: 'asc' } } },
+      include: { messages: { orderBy: { createdAt: 'asc' } }, analysis: true },
+    });
+  }
+
+  upsertAnalysis(
+    organizationId: string,
+    conversationId: string,
+    data: {
+      discovery: number;
+      personalization: number;
+      relevance: number;
+      empathy: number;
+      valueCommunication: number;
+      objectionHandling: number;
+      closing: number;
+      followUp: number;
+      accuracy: number;
+      score: number;
+      whyBought?: string | null;
+      whyNotBought?: string | null;
+    }
+  ) {
+    return this._analysis.model.salesConversationAnalysis.upsert({
+      where: { conversationId },
+      create: { organizationId, conversationId, ...data },
+      update: data,
     });
   }
 
@@ -41,10 +67,11 @@ export class SalesConversationsRepository {
     role: SalesMessageRole,
     content: string,
     metadata?: Prisma.InputJsonValue,
-    isDraft = false
+    isDraft = false,
+    salespersonId?: string
   ) {
     return this._message.model.salesMessage.create({
-      data: { conversationId, role, content, metadata, isDraft },
+      data: { conversationId, role, content, metadata, isDraft, salespersonId },
     });
   }
 

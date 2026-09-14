@@ -73,3 +73,61 @@ export const useSalesBrainAutomations = () => {
   }, []);
   return useSWR('sales-brain-automations', load);
 };
+
+export const useSalesBrainSalespersons = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/salespersons')).json();
+  }, []);
+  return useSWR('sales-brain-salespersons', load);
+};
+
+export const useSalesBrainRoleplaySessions = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/roleplay')).json();
+  }, []);
+  return useSWR('sales-brain-roleplay-sessions', load);
+};
+
+export const useSalesBrainRoleplaySession = (id?: string) => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch(`/sales-brain/roleplay/${id}`)).json();
+  }, [id]);
+  return useSWR(id ? `sales-brain-roleplay-${id}` : null, id ? load : null, {
+    refreshInterval: 0,
+  });
+};
+
+export const useSalesBrainForecast = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/leads/forecast')).json();
+  }, []);
+  return useSWR('sales-brain-forecast', load, { refreshInterval: 60000 });
+};
+
+export const useSalesBrainExperiments = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/experiments')).json();
+  }, []);
+  return useSWR('sales-brain-experiments', load);
+};
+
+export const useSalesBrainExperimentResults = (id?: string) => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch(`/sales-brain/experiments/${id}/results`)).json();
+  }, [id]);
+  return useSWR(id ? `sales-brain-experiment-results-${id}` : null, id ? load : null);
+};
+
+export const useSalesBrainInsights = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/insights')).json();
+  }, []);
+  return useSWR('sales-brain-insights', load);
+};

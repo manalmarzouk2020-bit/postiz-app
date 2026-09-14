@@ -24,6 +24,7 @@ export class SalesLeadsRepository {
           orderBy: { createdAt: 'asc' },
           include: {
             messages: { orderBy: { createdAt: 'asc' } },
+            analysis: true,
           },
         },
         followups: { orderBy: { scheduledAt: 'asc' } },
@@ -108,6 +109,17 @@ export class SalesLeadsRepository {
         pipelineStage: true,
         buyingStage: true,
         updatedAt: true,
+      },
+    });
+  }
+
+  getForecastData(organizationId: string) {
+    return this._lead.model.salesLead.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        pipelineStage: true,
+        leadScore: true,
+        productInterest: { select: { price: true } },
       },
     });
   }

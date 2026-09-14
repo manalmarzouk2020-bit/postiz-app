@@ -32,7 +32,8 @@ export class SalesBrainConversationsController {
     return this._conversationsService.sendHumanMessage(
       org.id,
       conversationId,
-      body.content
+      body.content,
+      body.salespersonId
     );
   }
 
@@ -50,5 +51,13 @@ export class SalesBrainConversationsController {
     @Param('messageId') messageId: string
   ) {
     return this._conversationsService.rejectDraft(org.id, messageId);
+  }
+
+  @Post('/conversations/:conversationId/analyze')
+  analyzeConversation(
+    @GetOrgFromRequest() org: Organization,
+    @Param('conversationId') conversationId: string
+  ) {
+    return this._conversationsService.analyzeConversation(org.id, conversationId);
   }
 }

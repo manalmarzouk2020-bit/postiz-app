@@ -11,6 +11,11 @@ import { SalesBrainPlaybook } from '@gitroom/frontend/components/sales-brain/pla
 import { SalesBrainAsk } from '@gitroom/frontend/components/sales-brain/ask-brain';
 import { SalesBrainSettings } from '@gitroom/frontend/components/sales-brain/settings';
 import { SalesBrainAutomations } from '@gitroom/frontend/components/sales-brain/automations';
+import { SalesBrainCoach } from '@gitroom/frontend/components/sales-brain/coach';
+import { SalesBrainRoleplay } from '@gitroom/frontend/components/sales-brain/roleplay';
+import { SalesBrainForecast } from '@gitroom/frontend/components/sales-brain/forecast';
+import { SalesBrainExperiments } from '@gitroom/frontend/components/sales-brain/experiments';
+import { SalesBrainInsights } from '@gitroom/frontend/components/sales-brain/insights';
 import { useSalesBrainHandoffs } from '@gitroom/frontend/components/sales-brain/sales-brain.hooks';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -20,8 +25,13 @@ type Tab =
   | 'products'
   | 'followups'
   | 'handoffs'
+  | 'forecast'
   | 'playbook'
   | 'automations'
+  | 'coach'
+  | 'roleplay'
+  | 'experiments'
+  | 'insights'
   | 'ask'
   | 'settings';
 
@@ -39,9 +49,14 @@ export const SalesBrain: FC = () => {
       label: t('handoffs', 'Handoffs'),
       badge: handoffs?.length || 0,
     },
+    { key: 'forecast', label: t('forecast', 'Forecast') },
     { key: 'products', label: t('products_offers', 'Products & Offers') },
     { key: 'playbook', label: t('playbook', 'Playbook') },
     { key: 'automations', label: t('automations', 'Automations') },
+    { key: 'coach', label: t('coach', 'Coach') },
+    { key: 'roleplay', label: t('roleplay', 'Roleplay') },
+    { key: 'experiments', label: t('experiments', 'Experiments') },
+    { key: 'insights', label: t('insights', 'Insights') },
     { key: 'ask', label: t('ask_brain', 'Ask Brain') },
     { key: 'settings', label: t('settings', 'Settings') },
   ];
@@ -73,9 +88,14 @@ export const SalesBrain: FC = () => {
       {tab === 'leads' && <SalesBrainLeadsList />}
       {tab === 'followups' && <SalesBrainFollowups />}
       {tab === 'handoffs' && <SalesBrainHandoffs />}
+      {tab === 'forecast' && <SalesBrainForecast />}
       {tab === 'products' && <SalesBrainProducts />}
       {tab === 'playbook' && <SalesBrainPlaybook />}
       {tab === 'automations' && <SalesBrainAutomations />}
+      {tab === 'coach' && <SalesBrainCoach />}
+      {tab === 'roleplay' && <SalesBrainRoleplay />}
+      {tab === 'experiments' && <SalesBrainExperiments />}
+      {tab === 'insights' && <SalesBrainInsights />}
       {tab === 'ask' && <SalesBrainAsk />}
       {tab === 'settings' && <SalesBrainSettings />}
     </div>

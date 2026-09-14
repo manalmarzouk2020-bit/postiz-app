@@ -45,9 +45,14 @@ model Organization {
   salesLeads        SalesLead[]
   salesFollowups    SalesFollowup[]
   salesAiDecisions  SalesAiDecision[]
-  salesSettings        SalesSettings?
-  salesPlaybook        SalesPlaybook?
-  salesAutomationRules SalesAutomationRule[]
+  salesSettings         SalesSettings?
+  salesPlaybook         SalesPlaybook?
+  salesAutomationRules  SalesAutomationRule[]
+  salespersons          Salesperson[]
+  salesCoachingReports  SalesCoachingReport[]
+  roleplaySessions      RoleplaySession[]
+  salesExperiments      SalesExperiment[]
+  salesInsights         SalesInsight[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -924,6 +929,7 @@ model SalesConversation {
   lead                 SalesLead         @relation(fields: [leadId], references: [id])
   messages             SalesMessage[]
   decisions            SalesAiDecision[]
+  analysis             SalesConversationAnalysis?
 
   @@index([organizationId])
   @@index([leadId])
@@ -936,11 +942,14 @@ model SalesMessage {
   role           SalesMessageRole
   content        String
   isDraft        Boolean           @default(false)
+  salespersonId  String?
   metadata       Json?
   createdAt      DateTime          @default(now())
   conversation   SalesConversation @relation(fields: [conversationId], references: [id])
+  salesperson    Salesperson?      @relation(fields: [salespersonId], references: [id])
 
   @@index([conversationId])
+  @@index([salespersonId])
 }
 
 model SalesSettings {
@@ -991,6 +1000,123 @@ model SalesAutomationLog {
 
   @@index([organizationId])
   @@index([ruleId])
+}
+
+model SalesConversationAnalysis {
+  id                 String            @id @default(uuid())
+  organizationId     String
+  conversationId     String            @unique
+  score              Int
+  discovery          Int
+  personalization    Int
+  relevance          Int
+  empathy            Int
+  valueCommunication Int
+  objectionHandling  Int
+  closing            Int
+  followUp           Int
+  accuracy           Int
+  whyBought          String?
+  whyNotBought       String?
+  createdAt          DateTime          @default(now())
+  conversation       SalesConversation @relation(fields: [conversationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model Salesperson {
+  id               String                @id @default(uuid())
+  organizationId   String
+  name             String
+  email            String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  organization     Organization          @relation(fields: [organizationId], references: [id])
+  coachingReports  SalesCoachingReport[]
+  roleplaySessions RoleplaySession[]
+  messages         SalesMessage[]
+
+  @@index([organizationId])
+}
+
+model SalesCoachingReport {
+  id             String       @id @default(uuid())
+  organizationId String
+  salespersonId  String
+  content        Json
+  generatedAt    DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  salesperson    Salesperson  @relation(fields: [salespersonId], references: [id])
+
+  @@index([organizationId])
+  @@index([salespersonId])
+}
+
+model RoleplaySession {
+  id             String              @id @default(uuid())
+  organizationId String
+  salespersonId  String?
+  persona        RoleplayPersona
+  status         SalesRoleplayStatus @default(ACTIVE)
+  score          Int?
+  feedback       Json?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organization   Organization        @relation(fields: [organizationId], references: [id])
+  salesperson    Salesperson?        @relation(fields: [salespersonId], references: [id])
+  messages       RoleplayMessage[]
+
+  @@index([organizationId])
+}
+
+model RoleplayMessage {
+  id        String              @id @default(uuid())
+  sessionId String
+  role      RoleplayMessageRole
+  content   String
+  createdAt DateTime            @default(now())
+  session   RoleplaySession     @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+}
+
+model SalesExperiment {
+  id              String                     @id @default(uuid())
+  organizationId  String
+  name            String
+  variantAContent String
+  variantBContent String
+  status          SalesExperimentStatus      @default(ACTIVE)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  organization    Organization               @relation(fields: [organizationId], references: [id])
+  assignments     SalesExperimentAssignment[]
+
+  @@index([organizationId])
+}
+
+model SalesExperimentAssignment {
+  id           String          @id @default(uuid())
+  experimentId String
+  leadId       String
+  variant      String
+  converted    Boolean         @default(false)
+  assignedAt   DateTime        @default(now())
+  experiment   SalesExperiment @relation(fields: [experimentId], references: [id])
+
+  @@unique([experimentId, leadId])
+  @@index([experimentId])
+  @@index([leadId])
+}
+
+model SalesInsight {
+  id             String       @id @default(uuid())
+  organizationId String
+  content        Json
+  generatedAt    DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
 }
 
 model SalesAiDecision {
@@ -1168,4 +1294,32 @@ enum SalesAutomationTrigger {
 enum SalesAutomationAction {
   SEND_NOTIFICATION
   CALL_WEBHOOK
+}
+
+enum RoleplayPersona {
+  ANGRY_CUSTOMER
+  PRICE_SENSITIVE
+  SKEPTICAL
+  BUSY_EXECUTIVE
+  DIFFICULT_BUYER
+  INDECISIVE_BUYER
+  HIGH_TICKET_BUYER
+  COMPARISON_SHOPPER
+  INTERESTED_BUT_HESITANT
+  SEND_ME_INFO
+}
+
+enum RoleplayMessageRole {
+  TRAINEE
+  CUSTOMER
+}
+
+enum SalesRoleplayStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum SalesExperimentStatus {
+  ACTIVE
+  COMPLETED
 }

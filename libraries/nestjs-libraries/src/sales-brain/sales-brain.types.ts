@@ -138,6 +138,75 @@ export const SalesPlaybookSchema = z.object({
 
 export type SalesPlaybook = z.infer<typeof SalesPlaybookSchema>;
 
+// Post-hoc conversation quality scoring (master spec section 22).
+export const SalesConversationAnalysisSchema = z.object({
+  discovery: z.number().min(0).max(100),
+  personalization: z.number().min(0).max(100),
+  relevance: z.number().min(0).max(100),
+  empathy: z.number().min(0).max(100),
+  valueCommunication: z.number().min(0).max(100),
+  objectionHandling: z.number().min(0).max(100),
+  closing: z.number().min(0).max(100),
+  followUp: z.number().min(0).max(100),
+  accuracy: z.number().min(0).max(100),
+  overallScore: z.number().min(0).max(100),
+  whyBought: z
+    .string()
+    .nullable()
+    .describe('Only if the transcript shows evidence of a purchase decision, else null'),
+  whyNotBought: z
+    .string()
+    .nullable()
+    .describe('Only if the transcript shows evidence the prospect declined or stalled, else null'),
+});
+
+export type SalesConversationAnalysisResult = z.infer<
+  typeof SalesConversationAnalysisSchema
+>;
+
+// Personal sales coach report (master spec section 23).
+export const SalesCoachingReportSchema = z.object({
+  overallScore: z.number().min(0).max(100),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  missedOpportunities: z.array(z.string()),
+  badQuestions: z.array(z.string()),
+  weakResponses: z.array(z.string()),
+  missedClosingMoments: z.array(z.string()),
+  objectionHandlingMistakes: z.array(z.string()),
+  recommendedImprovements: z.array(z.string()),
+});
+
+export type SalesCoachingReportResult = z.infer<typeof SalesCoachingReportSchema>;
+
+// Roleplay simulator scoring (master spec section 24).
+export const RoleplayFeedbackSchema = z.object({
+  score: z.number().min(0).max(100),
+  didWell: z.array(z.string()),
+  didPoorly: z.array(z.string()),
+  shouldHaveAsked: z.array(z.string()),
+  shouldHaveSaid: z.array(z.string()),
+  whereControlWasLost: z.string().nullable(),
+  betterResponseExamples: z.array(z.string()),
+});
+
+export type RoleplayFeedbackResult = z.infer<typeof RoleplayFeedbackSchema>;
+
+// Self-learning pattern insights from aggregated pipeline/objection data
+// (master spec section 38). Grounded only in the aggregate summary given.
+export const SalesInsightsSchema = z.object({
+  insights: z.array(
+    z.object({
+      pattern: z.string().describe('The pattern observed, e.g. "Leads mentioning price objection convert less"'),
+      evidence: z.string().describe('The specific numbers from the summary that support this'),
+      confidence: z.enum(['low', 'medium', 'high']),
+      recommendedAction: z.string(),
+    })
+  ),
+});
+
+export type SalesInsightsResult = z.infer<typeof SalesInsightsSchema>;
+
 export interface SalesBrainDecisionRequest {
   organizationName: string;
   lead: {

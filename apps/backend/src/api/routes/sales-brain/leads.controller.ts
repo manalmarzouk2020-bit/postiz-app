@@ -22,6 +22,11 @@ export class SalesBrainLeadsController {
     return this._leadsService.getDashboard(org.id);
   }
 
+  @Get('/forecast')
+  getForecast(@GetOrgFromRequest() org: Organization) {
+    return this._leadsService.getForecast(org.id);
+  }
+
   @Get('/')
   getLeads(@GetOrgFromRequest() org: Organization) {
     return this._leadsService.getLeads(org.id);

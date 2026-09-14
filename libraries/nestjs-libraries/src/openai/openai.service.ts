@@ -10,6 +10,14 @@ import {
   SalesBrainProductContext,
   SalesPlaybook,
   SalesPlaybookSchema,
+  SalesConversationAnalysisResult,
+  SalesConversationAnalysisSchema,
+  SalesCoachingReportResult,
+  SalesCoachingReportSchema,
+  RoleplayFeedbackResult,
+  RoleplayFeedbackSchema,
+  SalesInsightsResult,
+  SalesInsightsSchema,
 } from '@gitroom/nestjs-libraries/sales-brain/sales-brain.types';
 
 const openai = new OpenAI({
@@ -374,6 +382,130 @@ ${JSON.stringify(request.products, null, 2)}`;
     });
 
     return completion.choices[0].message.content || '';
+  }
+
+  async analyzeConversation(
+    messages: Array<{ role: string; content: string }>
+  ): Promise<SalesConversationAnalysisResult> {
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a sales conversation quality auditor. Score this transcript objectively on each 0-100 dimension based only on what actually happened in it - do not be generous by default. whyBought/whyNotBought must be grounded in explicit evidence in the transcript; return null for either if the transcript does not clearly show it (e.g. conversation still ongoing).`,
+        },
+        {
+          role: 'user',
+          content: `Transcript (LEAD = prospect, AI/HUMAN = seller side):\n${messages
+            .map((m) => `${m.role}: ${m.content}`)
+            .join('\n')}`,
+        },
+      ],
+      response_format: zodResponseFormat(
+        SalesConversationAnalysisSchema,
+        'conversation_analysis'
+      ),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Conversation analysis returned no structured output');
+    }
+    return parsed;
+  }
+
+  async generateCoachingReport(
+    salespersonName: string,
+    transcripts: string[]
+  ): Promise<SalesCoachingReportResult> {
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are THE 20-YEAR SALES MASTER acting as a sales coach. Review these real conversation transcripts handled by salesperson "${salespersonName}" (their turns are marked HUMAN). Critique only their own turns - the LEAD/AI turns are context. Be specific and honest, cite concrete missed opportunities and bad questions rather than generic feedback. If the transcripts are too short or too few to judge fairly, say so within the relevant fields rather than inventing detail.`,
+        },
+        {
+          role: 'user',
+          content: transcripts.map((t, i) => `--- Conversation ${i + 1} ---\n${t}`).join('\n\n'),
+        },
+      ],
+      response_format: zodResponseFormat(SalesCoachingReportSchema, 'coaching_report'),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Coaching report generation returned no structured output');
+    }
+    return parsed;
+  }
+
+  async generateRoleplayCustomerReply(
+    persona: string,
+    productContext: SalesBrainProductContext[],
+    history: Array<{ role: 'TRAINEE' | 'CUSTOMER'; content: string }>
+  ): Promise<string> {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are role-playing as a "${persona.replace(/_/g, ' ').toLowerCase()}" prospect in a sales training simulation. Stay fully in character - react the way that persona genuinely would to what the trainee (the human salesperson) says. Never break character, never coach the trainee, never say you are an AI. Keep replies realistic in length (1-4 sentences). The product being pitched: ${JSON.stringify(productContext)}`,
+        },
+        ...history.map((m) => ({
+          role: (m.role === 'TRAINEE' ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: m.content,
+        })),
+      ],
+    });
+
+    return completion.choices[0].message.content || '';
+  }
+
+  async generateRoleplayFeedback(
+    persona: string,
+    history: Array<{ role: 'TRAINEE' | 'CUSTOMER'; content: string }>
+  ): Promise<RoleplayFeedbackResult> {
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are THE 20-YEAR SALES MASTER scoring a completed roleplay. The trainee practiced against a simulated "${persona.replace(/_/g, ' ').toLowerCase()}" customer. Score the TRAINEE's performance only, based strictly on what they actually said in the transcript below.`,
+        },
+        {
+          role: 'user',
+          content: history.map((m) => `${m.role}: ${m.content}`).join('\n'),
+        },
+      ],
+      response_format: zodResponseFormat(RoleplayFeedbackSchema, 'roleplay_feedback'),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Roleplay feedback generation returned no structured output');
+    }
+    return parsed;
+  }
+
+  async generateInsights(businessDataSummary: string): Promise<SalesInsightsResult> {
+    const completion = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a sales data analyst. Given only this aggregated business data summary, identify real patterns worth acting on. Every insight's "evidence" must cite actual numbers from the summary - never invent statistics, sample sizes or percentages that are not derivable from it. If the data is too thin to support a pattern, return fewer insights rather than fabricating one, and say so with confidence "low".`,
+        },
+        { role: 'user', content: businessDataSummary },
+      ],
+      response_format: zodResponseFormat(SalesInsightsSchema, 'sales_insights'),
+    });
+
+    const parsed = completion.choices[0].message.parsed;
+    if (!parsed) {
+      throw new Error('Insight generation returned no structured output');
+    }
+    return parsed;
   }
 
   async answerSalesBrainQuestion(

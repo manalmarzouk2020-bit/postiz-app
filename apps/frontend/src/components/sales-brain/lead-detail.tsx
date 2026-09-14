@@ -56,6 +56,22 @@ export const SalesBrainLeadDetail: FC = () => {
     [mutate]
   );
 
+  const [analyzing, setAnalyzing] = useState(false);
+  const analyze = useCallback(
+    (conversationId: string) => async () => {
+      setAnalyzing(true);
+      try {
+        await fetch(`/sales-brain/conversations/${conversationId}/analyze`, {
+          method: 'POST',
+        });
+        await mutate();
+      } finally {
+        setAnalyzing(false);
+      }
+    },
+    [mutate]
+  );
+
   if (isLoading || !lead) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -65,6 +81,8 @@ export const SalesBrainLeadDetail: FC = () => {
   }
 
   const messages = (lead.conversations || []).flatMap((c: any) => c.messages);
+  const latestConversation = (lead.conversations || [])[lead.conversations.length - 1];
+  const analysis = latestConversation?.analysis;
 
   return (
     <div className="flex flex-col lg:flex-row gap-[16px]">
@@ -124,6 +142,67 @@ export const SalesBrainLeadDetail: FC = () => {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {!!latestConversation && (
+          <div className="bg-sixth border-fifth border rounded-[4px] p-[20px] flex flex-col gap-[10px]">
+            <div className="flex justify-between items-center">
+              <h4 className="text-[14px] font-[600]">
+                {t('conversation_quality', 'Conversation quality')}
+              </h4>
+              <Button
+                onClick={analyze(latestConversation.id)}
+                disabled={analyzing || !latestConversation.messages?.length}
+              >
+                {analysis
+                  ? t('re_analyze', 'Re-analyze')
+                  : t('analyze', 'Analyze')}
+              </Button>
+            </div>
+            {!analysis && (
+              <div className="text-[12px] text-customColor18">
+                {t(
+                  'not_analyzed_yet',
+                  'Not analyzed yet. Score the conversation on discovery, empathy, objection handling and more.'
+                )}
+              </div>
+            )}
+            {!!analysis && (
+              <>
+                <div className="text-[22px] font-[600]">
+                  {analysis.score}
+                  <span className="text-[12px] text-customColor18">/100</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-[10px] gap-y-[4px] text-[12px]">
+                  <ScoreRow label="Discovery" value={analysis.discovery} />
+                  <ScoreRow label="Personalization" value={analysis.personalization} />
+                  <ScoreRow label="Relevance" value={analysis.relevance} />
+                  <ScoreRow label="Empathy" value={analysis.empathy} />
+                  <ScoreRow label="Value comm." value={analysis.valueCommunication} />
+                  <ScoreRow label="Objections" value={analysis.objectionHandling} />
+                  <ScoreRow label="Closing" value={analysis.closing} />
+                  <ScoreRow label="Follow-up" value={analysis.followUp} />
+                  <ScoreRow label="Accuracy" value={analysis.accuracy} />
+                </div>
+                {analysis.whyBought && (
+                  <div className="text-[12px]">
+                    <span className="text-customColor18">
+                      {t('why_they_bought', 'Why they bought')}:
+                    </span>{' '}
+                    {analysis.whyBought}
+                  </div>
+                )}
+                {analysis.whyNotBought && (
+                  <div className="text-[12px]">
+                    <span className="text-customColor18">
+                      {t('why_they_did_not_buy', "Why they didn't buy")}:
+                    </span>{' '}
+                    {analysis.whyNotBought}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -199,5 +278,12 @@ const InfoRow: FC<{ label: string; value?: string | null }> = ({
   <div className="flex justify-between text-[13px]">
     <span className="text-customColor18">{label}</span>
     <span>{value || '—'}</span>
+  </div>
+);
+
+const ScoreRow: FC<{ label: string; value: number }> = ({ label, value }) => (
+  <div className="flex justify-between">
+    <span className="text-customColor18">{label}</span>
+    <span>{value}</span>
   </div>
 );

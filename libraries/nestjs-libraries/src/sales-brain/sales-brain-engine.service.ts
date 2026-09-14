@@ -5,6 +5,7 @@ import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database
 import { SalesSettingsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.service';
 import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.service';
 import { SalesAutomationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/automations.service';
+import { SalesExperimentsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/experiments.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import {
   calculateLeadScore,
@@ -26,6 +27,7 @@ export class SalesBrainEngineService {
     private _settingsService: SalesSettingsService,
     private _followupsService: SalesFollowupsService,
     private _automationsService: SalesAutomationsService,
+    private _experimentsService: SalesExperimentsService,
     private _openaiService: OpenaiService
   ) {}
 
@@ -98,6 +100,21 @@ export class SalesBrainEngineService {
       (a, b) => b.fitScore - a.fitScore
     )[0];
 
+    let experimentAssignment: { experimentId: string; variant: string } | null = null;
+    if (priorMessages.length === 0) {
+      const assignment = await this._experimentsService.assignVariantForNewLead(
+        organizationId,
+        leadId
+      );
+      if (assignment) {
+        decision.response = assignment.content;
+        experimentAssignment = { experimentId: assignment.experimentId, variant: assignment.variant };
+      }
+    }
+    if (pipelineStage === 'WON') {
+      await this._experimentsService.markConversionIfAny(leadId);
+    }
+
     const settings = await this._settingsService.getSettings(organizationId);
     const requiresApproval =
       settings.autonomyLevel === 'COPILOT' || settings.autonomyLevel === 'ASSISTED';
@@ -112,6 +129,7 @@ export class SalesBrainEngineService {
         conversationalObjective: decision.conversationalObjective,
         shouldEscalateToHuman: decision.shouldEscalateToHuman,
         escalationReason: decision.escalationReason,
+        experimentAssignment,
       },
       requiresApproval
     );
@@ -188,6 +206,7 @@ export class SalesBrainEngineService {
       pipelineStage,
       aiDecisionId: savedDecision.id,
       requiresApproval,
+      experimentAssignment,
     };
   }
 }

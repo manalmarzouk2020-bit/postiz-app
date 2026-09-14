@@ -31,4 +31,8 @@ export class SendMessageDto {
   @IsString()
   @IsDefined()
   content: string;
+
+  @IsString()
+  @IsOptional()
+  salespersonId?: string;
 }
