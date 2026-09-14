@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/followups.service';
 import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
+import { SalesSettingsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/settings.service';
+import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 
 /**
@@ -17,6 +19,8 @@ export class SalesFollowupsCronService {
   constructor(
     private _followupsService: SalesFollowupsService,
     private _conversationsRepository: SalesConversationsRepository,
+    private _settingsService: SalesSettingsService,
+    private _organizationService: OrganizationService,
     private _openaiService: OpenaiService
   ) {}
 
@@ -25,21 +29,26 @@ export class SalesFollowupsCronService {
     const due = await this._followupsService.getDue();
     for (const followup of due) {
       try {
-        const conversation = await this._conversationsRepository.getOrCreateConversation(
-          followup.organizationId,
-          followup.leadId,
-          followup.lead.source
-        );
+        const [conversation, organization, settings] = await Promise.all([
+          this._conversationsRepository.getOrCreateConversation(
+            followup.organizationId,
+            followup.leadId,
+            followup.lead.source
+          ),
+          this._organizationService.getOrgById(followup.organizationId),
+          this._settingsService.getSettings(followup.organizationId),
+        ]);
 
         const message = await this._openaiService.generateFollowUpMessage(
-          'the business',
+          organization?.name || 'the business',
           {
             name: followup.lead.name,
             buyingStage: followup.lead.buyingStage,
             painPoints: followup.lead.painPoints,
             objections: followup.lead.objections,
           },
-          followup.reason || 'Lead went quiet after showing interest'
+          followup.reason || 'Lead went quiet after showing interest',
+          settings.assistantName || undefined
         );
 
         await this._conversationsRepository.addMessage(

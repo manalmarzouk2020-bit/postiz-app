@@ -209,6 +209,7 @@ export type SalesInsightsResult = z.infer<typeof SalesInsightsSchema>;
 
 export interface SalesBrainDecisionRequest {
   organizationName: string;
+  assistantName?: string;
   lead: {
     name?: string | null;
     email?: string | null;

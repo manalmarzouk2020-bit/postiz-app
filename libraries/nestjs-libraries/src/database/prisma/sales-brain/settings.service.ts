@@ -16,6 +16,7 @@ export class SalesSettingsService {
       allowedClaims: body.allowedClaims,
       forbiddenClaims: body.forbiddenClaims,
       businessHours: body.businessHours,
+      assistantName: body.assistantName,
     });
   }
 }

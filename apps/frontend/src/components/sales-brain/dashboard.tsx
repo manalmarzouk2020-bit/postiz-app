@@ -2,7 +2,10 @@
 
 import { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSalesBrainDashboard } from '@gitroom/frontend/components/sales-brain/sales-brain.hooks';
+import {
+  useSalesBrainDashboard,
+  useSalesBrainPerformance,
+} from '@gitroom/frontend/components/sales-brain/sales-brain.hooks';
 import { LeadScoreBadge } from '@gitroom/frontend/components/sales-brain/lead-score-badge';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -19,6 +22,7 @@ const PIPELINE_ORDER = [
 
 export const SalesBrainDashboard: FC = () => {
   const { data } = useSalesBrainDashboard();
+  const { data: performance } = useSalesBrainPerformance();
   const router = useRouter();
   const t = useT();
 
@@ -96,6 +100,56 @@ export const SalesBrainDashboard: FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="bg-sixth border-fifth border rounded-[4px] p-[24px]">
+        <h3 className="text-[18px] mb-[16px]">
+          {t('ai_performance', 'AI performance')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+          <StatTile
+            label={t('conversations', 'Conversations')}
+            value={performance?.conversationCount ?? '—'}
+          />
+          <StatTile
+            label={t('ai_decisions', 'AI decisions')}
+            value={performance?.decisionCount ?? '—'}
+          />
+          <StatTile
+            label={t('human_handoff_rate', 'Human handoff rate')}
+            value={
+              performance ? `${Math.round(performance.handoffRate * 100)}%` : '—'
+            }
+          />
+          <StatTile
+            label={t('deals_won', 'Deals won')}
+            value={performance?.dealsWon ?? '—'}
+          />
+          <StatTile
+            label={t('ai_generated_revenue', 'AI-generated revenue')}
+            value={
+              performance ? `$${(performance.aiGeneratedRevenue ?? 0).toLocaleString()}` : '—'
+            }
+          />
+          <StatTile
+            label={t('ai_assisted_revenue', 'AI-assisted revenue')}
+            value={
+              performance ? `$${(performance.aiAssistedRevenue ?? 0).toLocaleString()}` : '—'
+            }
+          />
+          <StatTile
+            label={t('automations_fired', 'Automations fired')}
+            value={performance?.automationFireCount ?? '—'}
+          />
+          <StatTile
+            label={t('avg_conversation_score', 'Avg. conversation score')}
+            value={
+              performance?.averageConversationScore?.average != null
+                ? Math.round(performance.averageConversationScore.average)
+                : t('not_enough_data', 'n/a')
+            }
+          />
+        </div>
       </div>
     </div>
   );

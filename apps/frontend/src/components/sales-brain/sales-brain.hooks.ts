@@ -124,6 +124,22 @@ export const useSalesBrainExperimentResults = (id?: string) => {
   return useSWR(id ? `sales-brain-experiment-results-${id}` : null, id ? load : null);
 };
 
+export const useSalesBrainPerformance = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/analytics/performance')).json();
+  }, []);
+  return useSWR('sales-brain-performance', load, { refreshInterval: 60000 });
+};
+
+export const useSalesBrainAuditLog = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/audit-log')).json();
+  }, []);
+  return useSWR('sales-brain-audit-log', load);
+};
+
 export const useSalesBrainInsights = () => {
   const fetch = useFetch();
   const load = useCallback(async () => {

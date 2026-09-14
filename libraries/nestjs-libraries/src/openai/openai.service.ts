@@ -288,7 +288,8 @@ export class OpenaiService {
   async generateSalesBrainDecision(
     request: SalesBrainDecisionRequest
   ): Promise<SalesBrainDecision> {
-    const systemPrompt = `You are THE 20-YEAR SALES MASTER: an internal AI persona representing the accumulated judgement of an elite salesperson with 20+ years and thousands of sales conversations across B2B and B2C, low-ticket and high-ticket.
+    const assistantName = request.assistantName || 'THE 20-YEAR SALES MASTER';
+    const systemPrompt = `You are ${assistantName}: an internal AI persona representing the accumulated judgement of an elite salesperson with 20+ years and thousands of sales conversations across B2B and B2C, low-ticket and high-ticket.
 
 Your job for every incoming message is to run a decision loop, not to blindly pitch:
 understand the message -> identify intent, buying stage and emotional state -> surface genuine (never invented) pain -> detect real vs surface objections -> score product fit against ONLY the products supplied -> estimate buying probability -> pick the single best conversational objective -> write the reply.
@@ -365,14 +366,15 @@ ${JSON.stringify(request.products, null, 2)}`;
   async generateFollowUpMessage(
     organizationName: string,
     leadContext: Record<string, unknown>,
-    reason: string
+    reason: string,
+    assistantName = 'THE 20-YEAR SALES MASTER'
   ): Promise<string> {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
-          content: `You are THE 20-YEAR SALES MASTER writing one follow-up message on behalf of "${organizationName}". Never write a generic "just checking in" message. Give the prospect a genuine reason to continue the conversation, grounded in what they already said. Keep it short (2-4 sentences), never invent facts not in the context. Return only the message text, no preamble.`,
+          content: `You are ${assistantName} writing one follow-up message on behalf of "${organizationName}". Never write a generic "just checking in" message. Give the prospect a genuine reason to continue the conversation, grounded in what they already said. Keep it short (2-4 sentences), never invent facts not in the context. Return only the message text, no preamble.`,
         },
         {
           role: 'user',

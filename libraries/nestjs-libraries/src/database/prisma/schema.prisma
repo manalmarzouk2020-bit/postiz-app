@@ -53,6 +53,7 @@ model Organization {
   roleplaySessions      RoleplaySession[]
   salesExperiments      SalesExperiment[]
   salesInsights         SalesInsight[]
+  salesAuditLogs        SalesAuditLog[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -956,6 +957,7 @@ model SalesSettings {
   id              String             @id @default(uuid())
   organizationId  String             @unique
   autonomyLevel   SalesAutonomyLevel @default(ASSISTED)
+  assistantName   String?
   businessHours   Json?
   allowedClaims   Json?
   forbiddenClaims Json?
@@ -1117,6 +1119,21 @@ model SalesInsight {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
+}
+
+model SalesAuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 model SalesAiDecision {

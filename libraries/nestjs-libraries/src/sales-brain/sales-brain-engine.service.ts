@@ -55,8 +55,11 @@ export class SalesBrainEngineService {
 
     await this._conversationsRepository.addMessage(conversation.id, 'LEAD', content);
 
+    const settings = await this._settingsService.getSettings(organizationId);
+
     const decision = await this._openaiService.generateSalesBrainDecision({
       organizationName,
+      assistantName: settings.assistantName || undefined,
       lead: {
         name: lead.name,
         email: lead.email,
@@ -115,7 +118,6 @@ export class SalesBrainEngineService {
       await this._experimentsService.markConversionIfAny(leadId);
     }
 
-    const settings = await this._settingsService.getSettings(organizationId);
     const requiresApproval =
       settings.autonomyLevel === 'COPILOT' || settings.autonomyLevel === 'ASSISTED';
 

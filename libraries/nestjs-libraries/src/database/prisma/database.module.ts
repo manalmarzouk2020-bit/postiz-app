@@ -58,6 +58,10 @@ import { SalesExperimentsRepository } from '@gitroom/nestjs-libraries/database/p
 import { SalesExperimentsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/experiments.service';
 import { SalesInsightsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/insights.repository';
 import { SalesInsightsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/insights.service';
+import { SalesAuditLogRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/audit-log.repository';
+import { SalesAuditLogService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/audit-log.service';
+import { SalesAnalyticsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/analytics.repository';
+import { SalesAnalyticsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/analytics.service';
 import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/sales-brain-engine.service';
 
 @Global()
@@ -126,6 +130,10 @@ import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/s
     SalesExperimentsService,
     SalesInsightsRepository,
     SalesInsightsService,
+    SalesAuditLogRepository,
+    SalesAuditLogService,
+    SalesAnalyticsRepository,
+    SalesAnalyticsService,
     SalesBrainEngineService,
   ],
   get exports() {

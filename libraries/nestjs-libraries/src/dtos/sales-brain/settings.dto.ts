@@ -17,4 +17,8 @@ export class UpdateSalesSettingsDto {
   @IsString()
   @IsOptional()
   businessHours?: string;
+
+  @IsString()
+  @IsOptional()
+  assistantName?: string;
 }

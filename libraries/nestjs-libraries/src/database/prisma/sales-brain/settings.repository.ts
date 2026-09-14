@@ -25,6 +25,7 @@ export class SalesSettingsRepository {
       allowedClaims?: Prisma.InputJsonValue;
       forbiddenClaims?: Prisma.InputJsonValue;
       businessHours?: Prisma.InputJsonValue;
+      assistantName?: string;
     }
   ) {
     return this._settings.model.salesSettings.upsert({

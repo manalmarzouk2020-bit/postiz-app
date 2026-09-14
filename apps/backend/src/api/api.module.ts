@@ -47,6 +47,8 @@ import { SalesBrainSalespersonsController } from '@gitroom/backend/api/routes/sa
 import { SalesBrainRoleplayController } from '@gitroom/backend/api/routes/sales-brain/roleplay.controller';
 import { SalesBrainExperimentsController } from '@gitroom/backend/api/routes/sales-brain/experiments.controller';
 import { SalesBrainInsightsController } from '@gitroom/backend/api/routes/sales-brain/insights.controller';
+import { SalesBrainAuditLogController } from '@gitroom/backend/api/routes/sales-brain/audit-log.controller';
+import { SalesBrainAnalyticsController } from '@gitroom/backend/api/routes/sales-brain/analytics.controller';
 import { SalesFollowupsCronService } from '@gitroom/nestjs-libraries/sales-brain/sales-followups-cron.service';
 
 const authenticatedController = [
@@ -76,6 +78,8 @@ const authenticatedController = [
   SalesBrainRoleplayController,
   SalesBrainExperimentsController,
   SalesBrainInsightsController,
+  SalesBrainAuditLogController,
+  SalesBrainAnalyticsController,
 ];
 @Module({
   imports: [UploadModule, ScheduleModule.forRoot()],
