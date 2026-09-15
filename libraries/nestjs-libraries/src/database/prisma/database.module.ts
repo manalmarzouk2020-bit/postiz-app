@@ -60,9 +60,12 @@ import { SalesInsightsRepository } from '@gitroom/nestjs-libraries/database/pris
 import { SalesInsightsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/insights.service';
 import { SalesAuditLogRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/audit-log.repository';
 import { SalesAuditLogService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/audit-log.service';
+import { ChannelCredentialsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/channel-credentials.repository';
+import { ChannelCredentialsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/channel-credentials.service';
 import { SalesAnalyticsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/analytics.repository';
 import { SalesAnalyticsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/analytics.service';
 import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/sales-brain-engine.service';
+import { ChannelSenderService } from '@gitroom/nestjs-libraries/sales-brain/channel-sender.service';
 
 @Global()
 @Module({
@@ -132,9 +135,12 @@ import { SalesBrainEngineService } from '@gitroom/nestjs-libraries/sales-brain/s
     SalesInsightsService,
     SalesAuditLogRepository,
     SalesAuditLogService,
+    ChannelCredentialsRepository,
+    ChannelCredentialsService,
     SalesAnalyticsRepository,
     SalesAnalyticsService,
     SalesBrainEngineService,
+    ChannelSenderService,
   ],
   get exports() {
     return this.providers;

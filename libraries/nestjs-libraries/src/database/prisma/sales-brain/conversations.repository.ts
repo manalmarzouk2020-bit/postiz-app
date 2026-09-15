@@ -116,6 +116,9 @@ export class SalesConversationsRepository {
         isDraft: true,
         conversation: { organizationId },
       },
+      include: {
+        conversation: { include: { lead: true } },
+      },
     });
   }
 
@@ -123,6 +126,16 @@ export class SalesConversationsRepository {
     return this._message.model.salesMessage.update({
       where: { id: messageId },
       data: { isDraft },
+    });
+  }
+
+  setDeliveryResult(messageId: string, success: boolean, error?: string) {
+    return this._message.model.salesMessage.update({
+      where: { id: messageId },
+      data: {
+        deliveredAt: success ? new Date() : null,
+        deliveryError: success ? null : error || 'Unknown error',
+      },
     });
   }
 

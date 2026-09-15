@@ -7,6 +7,7 @@ import { SalesFollowupsService } from '@gitroom/nestjs-libraries/database/prisma
 import { SalesAutomationsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/automations.service';
 import { SalesExperimentsService } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/experiments.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { ChannelSenderService } from '@gitroom/nestjs-libraries/sales-brain/channel-sender.service';
 import {
   calculateLeadScore,
   pipelineStageForBuyingStage,
@@ -28,7 +29,8 @@ export class SalesBrainEngineService {
     private _followupsService: SalesFollowupsService,
     private _automationsService: SalesAutomationsService,
     private _experimentsService: SalesExperimentsService,
-    private _openaiService: OpenaiService
+    private _openaiService: OpenaiService,
+    private _channelSenderService: ChannelSenderService
   ) {}
 
   async processIncomingMessage(
@@ -121,7 +123,7 @@ export class SalesBrainEngineService {
     const requiresApproval =
       settings.autonomyLevel === 'COPILOT' || settings.autonomyLevel === 'ASSISTED';
 
-    await this._conversationsRepository.addMessage(
+    const aiMessage = await this._conversationsRepository.addMessage(
       conversation.id,
       'AI',
       decision.response,
@@ -135,6 +137,20 @@ export class SalesBrainEngineService {
       },
       requiresApproval
     );
+
+    if (!requiresApproval) {
+      const sendResult = await this._channelSenderService.send(
+        organizationId,
+        lead.source,
+        { phone: lead.phone, externalContactId: lead.externalContactId },
+        decision.response
+      );
+      await this._conversationsRepository.setDeliveryResult(
+        aiMessage.id,
+        sendResult.success,
+        sendResult.error
+      );
+    }
 
     await this._conversationsRepository.updateConversationStage(
       organizationId,

@@ -16,6 +16,7 @@ import { SalesBrainRoleplay } from '@gitroom/frontend/components/sales-brain/rol
 import { SalesBrainForecast } from '@gitroom/frontend/components/sales-brain/forecast';
 import { SalesBrainExperiments } from '@gitroom/frontend/components/sales-brain/experiments';
 import { SalesBrainInsights } from '@gitroom/frontend/components/sales-brain/insights';
+import { SalesBrainChannels } from '@gitroom/frontend/components/sales-brain/channels';
 import { useSalesBrainHandoffs } from '@gitroom/frontend/components/sales-brain/sales-brain.hooks';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -33,6 +34,7 @@ type Tab =
   | 'experiments'
   | 'insights'
   | 'ask'
+  | 'channels'
   | 'settings';
 
 export const SalesBrain: FC = () => {
@@ -58,6 +60,7 @@ export const SalesBrain: FC = () => {
     { key: 'experiments', label: t('experiments', 'Experiments') },
     { key: 'insights', label: t('insights', 'Insights') },
     { key: 'ask', label: t('ask_brain', 'Ask Brain') },
+    { key: 'channels', label: t('channels', 'Channels') },
     { key: 'settings', label: t('settings', 'Settings') },
   ];
 
@@ -97,6 +100,7 @@ export const SalesBrain: FC = () => {
       {tab === 'experiments' && <SalesBrainExperiments />}
       {tab === 'insights' && <SalesBrainInsights />}
       {tab === 'ask' && <SalesBrainAsk />}
+      {tab === 'channels' && <SalesBrainChannels />}
       {tab === 'settings' && <SalesBrainSettings />}
     </div>
   );

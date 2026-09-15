@@ -39,6 +39,8 @@ import { SalesBrainLeadsController } from '@gitroom/backend/api/routes/sales-bra
 import { SalesBrainSettingsController } from '@gitroom/backend/api/routes/sales-brain/settings.controller';
 import { SalesBrainConversationsController } from '@gitroom/backend/api/routes/sales-brain/conversations.controller';
 import { SalesBrainInboundController } from '@gitroom/backend/api/routes/sales-brain/inbound.controller';
+import { SalesBrainMetaWebhookController } from '@gitroom/backend/api/routes/sales-brain/meta-webhook.controller';
+import { SalesBrainTelegramWebhookController } from '@gitroom/backend/api/routes/sales-brain/telegram-webhook.controller';
 import { SalesBrainPlaybookController } from '@gitroom/backend/api/routes/sales-brain/playbook.controller';
 import { SalesBrainAskController } from '@gitroom/backend/api/routes/sales-brain/ask.controller';
 import { SalesBrainFollowupsController } from '@gitroom/backend/api/routes/sales-brain/followups.controller';
@@ -49,6 +51,7 @@ import { SalesBrainExperimentsController } from '@gitroom/backend/api/routes/sal
 import { SalesBrainInsightsController } from '@gitroom/backend/api/routes/sales-brain/insights.controller';
 import { SalesBrainAuditLogController } from '@gitroom/backend/api/routes/sales-brain/audit-log.controller';
 import { SalesBrainAnalyticsController } from '@gitroom/backend/api/routes/sales-brain/analytics.controller';
+import { SalesBrainChannelCredentialsController } from '@gitroom/backend/api/routes/sales-brain/channel-credentials.controller';
 import { SalesFollowupsCronService } from '@gitroom/nestjs-libraries/sales-brain/sales-followups-cron.service';
 
 const authenticatedController = [
@@ -80,6 +83,7 @@ const authenticatedController = [
   SalesBrainInsightsController,
   SalesBrainAuditLogController,
   SalesBrainAnalyticsController,
+  SalesBrainChannelCredentialsController,
 ];
 @Module({
   imports: [UploadModule, ScheduleModule.forRoot()],
@@ -92,6 +96,8 @@ const authenticatedController = [
     EnterpriseController,
     NoAuthIntegrationsController,
     SalesBrainInboundController,
+    SalesBrainMetaWebhookController,
+    SalesBrainTelegramWebhookController,
     ...authenticatedController,
   ],
   providers: [

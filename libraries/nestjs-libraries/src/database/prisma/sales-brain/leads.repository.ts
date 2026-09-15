@@ -71,12 +71,20 @@ export class SalesLeadsRepository {
 
   async findOrCreateByContact(
     organizationId: string,
-    contact: { name?: string; email?: string; phone?: string },
+    contact: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      externalContactId?: string;
+    },
     source: SalesChannel
   ) {
     const orConditions = [
       ...(contact.phone ? [{ phone: contact.phone }] : []),
       ...(contact.email ? [{ email: contact.email }] : []),
+      ...(contact.externalContactId
+        ? [{ externalContactId: contact.externalContactId }]
+        : []),
     ];
 
     if (orConditions.length) {
@@ -94,6 +102,7 @@ export class SalesLeadsRepository {
         name: contact.name,
         email: contact.email,
         phone: contact.phone,
+        externalContactId: contact.externalContactId,
         source,
       },
     });

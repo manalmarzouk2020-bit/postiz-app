@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SalesConversationsRepository } from '@gitroom/nestjs-libraries/database/prisma/sales-brain/conversations.repository';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { ChannelSenderService } from '@gitroom/nestjs-libraries/sales-brain/channel-sender.service';
 
 @Injectable()
 export class SalesConversationsService {
   constructor(
     private _conversationsRepository: SalesConversationsRepository,
-    private _openaiService: OpenaiService
+    private _openaiService: OpenaiService,
+    private _channelSenderService: ChannelSenderService
   ) {}
 
   getConversation(organizationId: string, id: string) {
@@ -29,7 +31,28 @@ export class SalesConversationsService {
     if (!draft) {
       throw new NotFoundException('Draft message not found');
     }
-    return this._conversationsRepository.setMessageDraftState(messageId, false);
+
+    const updated = await this._conversationsRepository.setMessageDraftState(
+      messageId,
+      false
+    );
+
+    const lead = draft.conversation?.lead;
+    if (lead) {
+      const sendResult = await this._channelSenderService.send(
+        organizationId,
+        lead.source,
+        { phone: lead.phone, externalContactId: lead.externalContactId },
+        draft.content
+      );
+      await this._conversationsRepository.setDeliveryResult(
+        messageId,
+        sendResult.success,
+        sendResult.error
+      );
+    }
+
+    return updated;
   }
 
   async rejectDraft(organizationId: string, messageId: string) {

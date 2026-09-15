@@ -147,3 +147,19 @@ export const useSalesBrainInsights = () => {
   }, []);
   return useSWR('sales-brain-insights', load);
 };
+
+export const useSalesBrainMetaChannel = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/channels/meta')).json();
+  }, []);
+  return useSWR('sales-brain-channels-meta', load);
+};
+
+export const useSalesBrainTelegramChannel = () => {
+  const fetch = useFetch();
+  const load = useCallback(async () => {
+    return (await fetch('/sales-brain/channels/telegram')).json();
+  }, []);
+  return useSWR('sales-brain-channels-telegram', load);
+};

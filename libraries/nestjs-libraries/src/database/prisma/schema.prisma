@@ -54,6 +54,8 @@ model Organization {
   salesExperiments      SalesExperiment[]
   salesInsights         SalesInsight[]
   salesAuditLogs        SalesAuditLog[]
+  salesMetaAppCredential    SalesMetaAppCredential?
+  salesTelegramCredential   SalesTelegramCredential?
 
   @@index([apiKey])
   @@index([streakSince])
@@ -885,6 +887,7 @@ model SalesLead {
   name              String?
   email             String?
   phone             String?
+  externalContactId String?
   source            SalesChannel        @default(MANUAL)
   productInterestId String?
   persona           Json?
@@ -914,6 +917,7 @@ model SalesLead {
   @@index([pipelineStage])
   @@index([leadScore])
   @@index([deletedAt])
+  @@index([externalContactId])
 }
 
 model SalesConversation {
@@ -945,6 +949,8 @@ model SalesMessage {
   isDraft        Boolean           @default(false)
   salespersonId  String?
   metadata       Json?
+  deliveredAt    DateTime?
+  deliveryError  String?
   createdAt      DateTime          @default(now())
   conversation   SalesConversation @relation(fields: [conversationId], references: [id])
   salesperson    Salesperson?      @relation(fields: [salespersonId], references: [id])
@@ -1136,6 +1142,35 @@ model SalesAuditLog {
   @@index([createdAt])
 }
 
+// Meta (WhatsApp/Messenger/Instagram) webhooks are configured once per Meta
+// App and shared across whichever of the three products are subscribed -
+// there is exactly one callback URL and one verify token per app, so this
+// is one row per organization rather than one per channel.
+model SalesMetaAppCredential {
+  id                    String       @id @default(uuid())
+  organizationId        String       @unique
+  verifyToken           String
+  appSecret             String?
+  whatsappAccessToken   String?
+  whatsappPhoneNumberId String?
+  pageAccessToken       String?
+  pageId                String?
+  instagramAccountId    String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  organization          Organization @relation(fields: [organizationId], references: [id])
+}
+
+model SalesTelegramCredential {
+  id             String       @id @default(uuid())
+  organizationId String       @unique
+  botToken       String
+  webhookSecret  String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
 model SalesAiDecision {
   id                String             @id @default(uuid())
   organizationId    String
@@ -1242,6 +1277,7 @@ enum SalesChannel {
   WHATSAPP
   INSTAGRAM
   FACEBOOK_MESSENGER
+  TELEGRAM
   EMAIL
   SMS
   LIVE_CHAT

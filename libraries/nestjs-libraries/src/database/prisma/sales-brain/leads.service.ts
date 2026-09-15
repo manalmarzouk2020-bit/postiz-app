@@ -23,7 +23,12 @@ export class SalesLeadsService {
 
   findOrCreateByContact(
     organizationId: string,
-    contact: { name?: string; email?: string; phone?: string },
+    contact: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      externalContactId?: string;
+    },
     source: SalesChannel
   ) {
     return this._leadsRepository.findOrCreateByContact(organizationId, contact, source);
